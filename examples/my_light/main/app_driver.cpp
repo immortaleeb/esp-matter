@@ -81,31 +81,77 @@ static void app_driver_button_toggle_cb(void *arg, void *data)
     attribute::update(endpoint_id, cluster_id, attribute_id, &val);
 }
 
+static esp_err_t handle_on_off_attribute_update(
+    led_indicator_handle_t &handle,
+    uint16_t endpoint_id, uint32_t cluster_id,
+    uint32_t attribute_id,
+    esp_matter_attr_val_t *val
+) {
+    if (attribute_id == OnOff::Attributes::OnOff::Id) {
+        return app_driver_light_set_power(handle, val);
+    }
+
+    return ESP_OK;
+}
+
+static esp_err_t handle_level_control_attribute_update(
+    led_indicator_handle_t &handle,
+    uint16_t endpoint_id, uint32_t cluster_id,
+    uint32_t attribute_id,
+    esp_matter_attr_val_t *val
+) {
+    if (attribute_id == LevelControl::Attributes::CurrentLevel::Id) {
+        return app_driver_light_set_brightness(handle, val);
+    }
+
+    return ESP_OK;
+}
+
+static esp_err_t handle_color_control_attribute_update(
+    led_indicator_handle_t &handle,
+    uint16_t endpoint_id, uint32_t cluster_id,
+    uint32_t attribute_id,
+    esp_matter_attr_val_t *val
+) {
+    switch (attribute_id) {
+        case ColorControl::Attributes::CurrentHue::Id:
+            return app_driver_light_set_hue(handle, val);
+        case ColorControl::Attributes::CurrentSaturation::Id:
+            return app_driver_light_set_saturation(handle, val);
+        case ColorControl::Attributes::ColorTemperatureMireds::Id:
+            return app_driver_light_set_temperature(handle, val);
+        default:
+            return ESP_OK;
+    }
+}
+
+static esp_err_t handle_light_attribute_update(
+    app_driver_handle_t driver_handle,
+    uint16_t endpoint_id, uint32_t cluster_id,
+    uint32_t attribute_id,
+    esp_matter_attr_val_t *val
+) {
+    led_indicator_handle_t handle = (led_indicator_handle_t)driver_handle;
+    switch (cluster_id) {
+        case OnOff::Id:
+            return handle_on_off_attribute_update(handle, endpoint_id, cluster_id, attribute_id, val);
+        case LevelControl::Id:
+            return handle_level_control_attribute_update(handle, endpoint_id, cluster_id, attribute_id, val);
+        case ColorControl::Id:
+            return handle_color_control_attribute_update(handle, endpoint_id, cluster_id, attribute_id, val);
+        default:
+            return ESP_OK;
+    }
+}
+
 esp_err_t app_driver_attribute_update(app_driver_handle_t driver_handle, uint16_t endpoint_id, uint32_t cluster_id,
                                       uint32_t attribute_id, esp_matter_attr_val_t *val)
 {
-    esp_err_t err = ESP_OK;
     if (endpoint_id == light_endpoint_id) {
-        led_indicator_handle_t handle = (led_indicator_handle_t)driver_handle;
-        if (cluster_id == OnOff::Id) {
-            if (attribute_id == OnOff::Attributes::OnOff::Id) {
-                err = app_driver_light_set_power(handle, val);
-            }
-        } else if (cluster_id == LevelControl::Id) {
-            if (attribute_id == LevelControl::Attributes::CurrentLevel::Id) {
-                err = app_driver_light_set_brightness(handle, val);
-            }
-        } else if (cluster_id == ColorControl::Id) {
-            if (attribute_id == ColorControl::Attributes::CurrentHue::Id) {
-                err = app_driver_light_set_hue(handle, val);
-            } else if (attribute_id == ColorControl::Attributes::CurrentSaturation::Id) {
-                err = app_driver_light_set_saturation(handle, val);
-            } else if (attribute_id == ColorControl::Attributes::ColorTemperatureMireds::Id) {
-                err = app_driver_light_set_temperature(handle, val);
-            }
-        }
+        return handle_light_attribute_update(driver_handle, endpoint_id, cluster_id, attribute_id, val);
     }
-    return err;
+
+    return ESP_OK;
 }
 
 esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id)
