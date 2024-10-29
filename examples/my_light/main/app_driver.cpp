@@ -13,6 +13,8 @@
 #include <esp_matter.h>
 #include "bsp/esp-bsp.h"
 
+#include <light.h>
+
 #include <app_priv.h>
 
 using namespace chip::app::Clusters;
@@ -24,43 +26,31 @@ extern uint16_t light_endpoint_id;
 /* Do any conversions/remapping for the actual value here */
 static esp_err_t app_driver_light_set_power(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
 {
-    esp_err_t err = ESP_OK;
-    if (val->val.b) {
-        err = led_indicator_start(handle, BSP_LED_ON);
-    } else {
-        err = led_indicator_start(handle, BSP_LED_OFF);
-    }
-    return err;
+    return light_set_power(handle, val->val.b ? LIGHT_ON : LIGHT_OFF);
 }
 
 static esp_err_t app_driver_light_set_brightness(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
 {
-    int value = REMAP_TO_RANGE(val->val.u8, MATTER_BRIGHTNESS, STANDARD_BRIGHTNESS);
-    return led_indicator_set_brightness(handle, value);
+    int brightness = REMAP_TO_RANGE(val->val.u8, MATTER_BRIGHTNESS, STANDARD_BRIGHTNESS);
+    return light_set_brightness(handle, brightness);
 }
 
 static esp_err_t app_driver_light_set_hue(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
 {
     int value = REMAP_TO_RANGE(val->val.u8, MATTER_HUE, STANDARD_HUE);
-    led_indicator_ihsv_t hsv;
-    hsv.value = led_indicator_get_hsv(handle);
-    hsv.h = value;
-    return led_indicator_set_hsv(handle, hsv.value);
+    return light_set_hue(handle, value);
 }
 
 static esp_err_t app_driver_light_set_saturation(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
 {
     int value = REMAP_TO_RANGE(val->val.u8, MATTER_SATURATION, STANDARD_SATURATION);
-    led_indicator_ihsv_t hsv;
-    hsv.value = led_indicator_get_hsv(handle);
-    hsv.s = value;
-    return led_indicator_set_hsv(handle, hsv.value);
+    return light_set_saturation(handle, value);
 }
 
 static esp_err_t app_driver_light_set_temperature(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
 {
     uint32_t value = REMAP_TO_RANGE_INVERSE(val->val.u16, STANDARD_TEMPERATURE_FACTOR);
-    return led_indicator_set_color_temperature(handle, value);
+    return light_set_temperature(handle, value);
 }
 
 static void app_driver_button_toggle_cb(void *arg, void *data)
