@@ -42,7 +42,7 @@ static void configure_color_control_cluster(endpoint_t *endpoint) {
 
 uint16_t register_light_endpoint(endpoint_handle_t handle, node_t *node) {
     light_endpoint_t light_endpoint = (light_endpoint_t) handle;
-    app_driver_handle_t light_handle = app_driver_light_init();
+    light_handle_t light_handle = app_driver_light_init();
 
     extended_color_light::config_t light_config;
     light_config.on_off.on_off = DEFAULT_POWER;
