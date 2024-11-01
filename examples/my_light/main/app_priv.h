@@ -14,6 +14,7 @@
 #include "esp_openthread_types.h"
 
 #include <app_driver_handle.h>
+#include <light_endpoint.h>
 
 /** Initialize the button driver
  *
@@ -22,7 +23,7 @@
  * @return Handle on success.
  * @return NULL in case of failure.
  */
-app_driver_handle_t app_driver_button_init();
+app_driver_handle_t app_driver_button_init(light_endpoint_t endpoint);
 
 #define ESP_OPENTHREAD_DEFAULT_RADIO_CONFIG()                                           \
     {                                                                                   \

@@ -14,17 +14,20 @@
 #include <app_priv.h>
 #include <matter_node.h>
 #include <light.h>
+#include <light_endpoint.h>
 
 extern "C" void app_main()
 {
     /* Initialize the ESP NVS layer */
     nvs_flash_init();
 
+    light_endpoint_t light_endpoint = light_endpoint_create();
+
     /* Initialize driver */
-    app_driver_handle_t button_handle = app_driver_button_init();
+    app_driver_handle_t button_handle = app_driver_button_init(light_endpoint);
     app_reset_button_register(button_handle);
 
-    create_matter_node();
+    create_matter_node(light_endpoint);
 
     /* Set OpenThread platform config */
     esp_openthread_platform_config_t config = {

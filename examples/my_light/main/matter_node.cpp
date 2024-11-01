@@ -19,7 +19,7 @@ static const char *TAG = "matter_node";
 
 constexpr auto k_timeout_seconds = 300;
 
-extern uint16_t light_endpoint_id;
+light_endpoint_t _light_endpoint = NULL;
 
 static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 {
@@ -108,7 +108,7 @@ static esp_err_t app_identification_cb(identification::callback_type_t type, uin
 static esp_err_t app_driver_attribute_update(app_driver_handle_t driver_handle, uint16_t endpoint_id, uint32_t cluster_id,
                                       uint32_t attribute_id, esp_matter_attr_val_t *val)
 {
-    if (endpoint_id == light_endpoint_id) {
+    if (endpoint_id == _light_endpoint->endpoint_id) {
         return handle_light_attribute_update(driver_handle, endpoint_id, cluster_id, attribute_id, val);
     }
 
@@ -133,10 +133,12 @@ static esp_err_t app_attribute_update_cb(attribute::callback_type_t type, uint16
 }
 
 static void register_endpoints(node_t *node) {
-    register_light_endpoint(node);
+    register_light_endpoint(_light_endpoint, node);
 }
 
-void create_matter_node() {
+void create_matter_node(light_endpoint_t light_endpoint) {
+    _light_endpoint = light_endpoint;
+
     /* Create a Matter node and add the mandatory Root Node device type on endpoint 0 */
     node::config_t node_config;
 
@@ -153,5 +155,5 @@ void start_matter_node() {
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "Failed to start Matter, err:%d", err));
 
     /* Starting driver with default values */
-    light_endpoint_on_start();
+    light_endpoint_on_start(_light_endpoint);
 }

@@ -6,9 +6,17 @@
 
 using namespace esp_matter;
 
-void register_light_endpoint(node_t *node);
+typedef struct {
+    uint16_t endpoint_id;
+} _light_endpoint_t;
 
-void light_endpoint_on_start();
+typedef _light_endpoint_t *light_endpoint_t;
+
+light_endpoint_t light_endpoint_create();
+
+void register_light_endpoint(light_endpoint_t light_endpoint, node_t *node);
+
+void light_endpoint_on_start(light_endpoint_t light_endpoint);
 
 esp_err_t handle_light_attribute_update(
     app_driver_handle_t driver_handle,

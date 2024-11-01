@@ -23,7 +23,10 @@ using namespace chip::app::Clusters;
 
 static const char *TAG = "light_endpoint";
 
-uint16_t light_endpoint_id = 0;
+light_endpoint_t light_endpoint_create() {
+    light_endpoint_t light_endpoint = (light_endpoint_t) malloc(sizeof(_light_endpoint_t));
+    return light_endpoint;
+}
 
 static void configure_level_control_cluster(endpoint_t *endpoint) {
     /* Mark deferred persistence for some attributes that might be changed rapidly */
@@ -42,7 +45,7 @@ static void configure_color_control_cluster(endpoint_t *endpoint) {
     attribute::set_deferred_persistence(color_temp_attribute);
 }
 
-void register_light_endpoint(node_t *node) {
+void register_light_endpoint(light_endpoint_t light_endpoint, node_t *node) {
     app_driver_handle_t light_handle = app_driver_light_init();
 
     extended_color_light::config_t light_config;
@@ -59,8 +62,9 @@ void register_light_endpoint(node_t *node) {
     endpoint_t *endpoint = extended_color_light::create(node, &light_config, ENDPOINT_FLAG_NONE, light_handle);
     ABORT_APP_ON_FAILURE(endpoint != nullptr, ESP_LOGE(TAG, "Failed to create extended color light endpoint"));
 
-    light_endpoint_id = endpoint::get_id(endpoint);
+    uint16_t light_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Light created with endpoint_id %d", light_endpoint_id);
+    light_endpoint->endpoint_id = light_endpoint_id;
 
     configure_level_control_cluster(endpoint);
     configure_color_control_cluster(endpoint);
@@ -143,8 +147,8 @@ static esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id) {
    return err;
 }
 
-void light_endpoint_on_start() {
-    app_driver_light_set_defaults(light_endpoint_id);
+void light_endpoint_on_start(light_endpoint_t light_endpoint) {
+    app_driver_light_set_defaults(light_endpoint->endpoint_id);
 }
 
 static esp_err_t handle_on_off_attribute_update(

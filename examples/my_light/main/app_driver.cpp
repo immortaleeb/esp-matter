@@ -8,6 +8,8 @@
 
 #include <app_priv.h>
 
+#include <light_endpoint.h>
+
 #include <esp_log.h>
 #include <esp_matter.h>
 #include "bsp/esp-bsp.h" // button_handle_t
@@ -16,12 +18,12 @@ using namespace chip::app::Clusters;
 using namespace esp_matter;
 
 static const char *TAG = "app_driver";
-extern uint16_t light_endpoint_id;
+light_endpoint_t light_endpoint;
 
 static void app_driver_button_toggle_cb(void *arg, void *data)
 {
     ESP_LOGI(TAG, "Toggle button pressed");
-    uint16_t endpoint_id = light_endpoint_id;
+    uint16_t endpoint_id = light_endpoint->endpoint_id;
     uint32_t cluster_id = OnOff::Id;
     uint32_t attribute_id = OnOff::Attributes::OnOff::Id;
 
@@ -36,12 +38,14 @@ static void app_driver_button_toggle_cb(void *arg, void *data)
     attribute::update(endpoint_id, cluster_id, attribute_id, &val);
 }
 
-app_driver_handle_t app_driver_button_init()
+app_driver_handle_t app_driver_button_init(light_endpoint_t endpoint)
 {
     /* Initialize button */
     button_handle_t btns[BSP_BUTTON_NUM];
     ESP_ERROR_CHECK(bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM));
     ESP_ERROR_CHECK(iot_button_register_cb(btns[0], BUTTON_PRESS_DOWN, app_driver_button_toggle_cb, NULL));
+
+    light_endpoint = endpoint;
     
     return (app_driver_handle_t)btns[0];
 }
