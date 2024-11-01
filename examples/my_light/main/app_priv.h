@@ -11,8 +11,6 @@
 #include <esp_err.h>
 #include <esp_matter.h>
 
-#include "esp_openthread_types.h"
-
 #include <app_driver_handle.h>
 #include <light_endpoint.h>
 
@@ -24,18 +22,3 @@
  * @return NULL in case of failure.
  */
 app_driver_handle_t app_driver_button_init(light_endpoint_t endpoint);
-
-#define ESP_OPENTHREAD_DEFAULT_RADIO_CONFIG()                                           \
-    {                                                                                   \
-        .radio_mode = RADIO_MODE_NATIVE,                                                \
-    }
-
-#define ESP_OPENTHREAD_DEFAULT_HOST_CONFIG()                                            \
-    {                                                                                   \
-        .host_connection_mode = HOST_CONNECTION_MODE_NONE,                              \
-    }
-
-#define ESP_OPENTHREAD_DEFAULT_PORT_CONFIG()                                            \
-    {                                                                                   \
-        .storage_partition_name = "nvs", .netif_queue_size = 10, .task_queue_size = 10, \
-    }

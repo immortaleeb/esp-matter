@@ -9,12 +9,12 @@
 #include <nvs_flash.h>
 
 #include <app_reset.h>
-#include <platform/ESP32/OpenthreadLauncher.h>
 
 #include <app_priv.h>
 #include <matter_node.h>
 #include <light.h>
 #include <light_endpoint.h>
+#include <matter_openthread.h>
 
 #define NUM_ENDPOINTS 1
 
@@ -33,13 +33,7 @@ extern "C" void app_main()
 
     create_matter_node(endpoints, NUM_ENDPOINTS);
 
-    /* Set OpenThread platform config */
-    esp_openthread_platform_config_t config = {
-        .radio_config = ESP_OPENTHREAD_DEFAULT_RADIO_CONFIG(),
-        .host_config = ESP_OPENTHREAD_DEFAULT_HOST_CONFIG(),
-        .port_config = ESP_OPENTHREAD_DEFAULT_PORT_CONFIG(),
-    };
-    set_openthread_platform_config(&config);
+    init_thread();
 
     start_matter_node();
 }
