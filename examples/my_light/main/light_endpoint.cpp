@@ -23,11 +23,6 @@ using namespace chip::app::Clusters;
 
 static const char *TAG = "light_endpoint";
 
-light_endpoint_t light_endpoint_create() {
-    light_endpoint_t light_endpoint = (light_endpoint_t) malloc(sizeof(_light_endpoint_t));
-    return light_endpoint;
-}
-
 static void configure_level_control_cluster(endpoint_t *endpoint) {
     /* Mark deferred persistence for some attributes that might be changed rapidly */
     cluster_t *level_control_cluster = cluster::get(endpoint, LevelControl::Id);
@@ -45,7 +40,8 @@ static void configure_color_control_cluster(endpoint_t *endpoint) {
     attribute::set_deferred_persistence(color_temp_attribute);
 }
 
-void register_light_endpoint(light_endpoint_t light_endpoint, node_t *node) {
+uint16_t register_light_endpoint(endpoint_handle_t handle, node_t *node) {
+    light_endpoint_t light_endpoint = (light_endpoint_t) handle;
     app_driver_handle_t light_handle = app_driver_light_init();
 
     extended_color_light::config_t light_config;
@@ -68,6 +64,8 @@ void register_light_endpoint(light_endpoint_t light_endpoint, node_t *node) {
 
     configure_level_control_cluster(endpoint);
     configure_color_control_cluster(endpoint);
+
+    return light_endpoint_id;
 }
 
 /* Do any conversions/remapping for the actual value here */
@@ -147,7 +145,8 @@ static esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id) {
    return err;
 }
 
-void light_endpoint_on_start(light_endpoint_t light_endpoint) {
+void light_endpoint_on_start(endpoint_handle_t handle) {
+    light_endpoint_t light_endpoint = (light_endpoint_t) handle;
     app_driver_light_set_defaults(light_endpoint->endpoint_id);
 }
 
@@ -212,4 +211,16 @@ esp_err_t handle_light_attribute_update(
         default:
             return ESP_OK;
     }
+}
+
+endpoint_descriptor_t light_endpoint_create_descriptor() {
+    endpoint_descriptor_t descriptor = {
+        .handle = (light_endpoint_t) malloc(sizeof(_light_endpoint_t)),
+        .endpoint_id = 0,
+        .register_endpoint = register_light_endpoint,
+        .on_start = light_endpoint_on_start,
+        .handle_attribute_update = handle_light_attribute_update
+    };
+
+    return descriptor;
 }

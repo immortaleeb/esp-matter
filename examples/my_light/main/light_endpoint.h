@@ -1,6 +1,7 @@
 #pragma once
 
 #include <app_driver_handle.h>
+#include <matter_endpoint.h>
 
 #include <esp_matter.h>
 
@@ -12,11 +13,11 @@ typedef struct {
 
 typedef _light_endpoint_t *light_endpoint_t;
 
-light_endpoint_t light_endpoint_create();
+endpoint_descriptor_t light_endpoint_create_descriptor();
 
-void register_light_endpoint(light_endpoint_t light_endpoint, node_t *node);
+uint16_t register_light_endpoint(endpoint_handle_t handle, node_t *node);
 
-void light_endpoint_on_start(light_endpoint_t light_endpoint);
+void light_endpoint_on_start(endpoint_handle_t handle);
 
 esp_err_t handle_light_attribute_update(
     app_driver_handle_t driver_handle,

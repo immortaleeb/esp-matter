@@ -1,6 +1,6 @@
 #pragma once
 
-#include <light_endpoint.h> // todo: get rid of me
+#include <matter_endpoint.h>
 
-void create_matter_node(light_endpoint_t light_endpoint);
+void create_matter_node(endpoint_descriptor_t* endpoints, int endpoints_length);
 void start_matter_node();
