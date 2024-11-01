@@ -69,30 +69,30 @@ uint16_t register_light_endpoint(endpoint_handle_t handle, node_t *node) {
 }
 
 /* Do any conversions/remapping for the actual value here */
- static esp_err_t app_driver_light_set_power(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
+ static esp_err_t app_driver_light_set_power(light_handle_t handle, esp_matter_attr_val_t *val)
  {
      return light_set_power(handle, val->val.b ? LIGHT_ON : LIGHT_OFF);
  }
 
- static esp_err_t app_driver_light_set_brightness(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
+ static esp_err_t app_driver_light_set_brightness(light_handle_t handle, esp_matter_attr_val_t *val)
  {
      int brightness = REMAP_TO_RANGE(val->val.u8, MATTER_BRIGHTNESS, STANDARD_BRIGHTNESS);
      return light_set_brightness(handle, brightness);
  }
 
- static esp_err_t app_driver_light_set_hue(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
+ static esp_err_t app_driver_light_set_hue(light_handle_t handle, esp_matter_attr_val_t *val)
  {
      int value = REMAP_TO_RANGE(val->val.u8, MATTER_HUE, STANDARD_HUE);
      return light_set_hue(handle, value);
  }
 
- static esp_err_t app_driver_light_set_saturation(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
+ static esp_err_t app_driver_light_set_saturation(light_handle_t handle, esp_matter_attr_val_t *val)
  {
      int value = REMAP_TO_RANGE(val->val.u8, MATTER_SATURATION, STANDARD_SATURATION);
      return light_set_saturation(handle, value);
  }
 
- static esp_err_t app_driver_light_set_temperature(led_indicator_handle_t handle, esp_matter_attr_val_t *val)
+ static esp_err_t app_driver_light_set_temperature(light_handle_t handle, esp_matter_attr_val_t *val)
  {
      uint32_t value = REMAP_TO_RANGE_INVERSE(val->val.u16, STANDARD_TEMPERATURE_FACTOR);
      return light_set_temperature(handle, value);
@@ -101,7 +101,7 @@ uint16_t register_light_endpoint(endpoint_handle_t handle, node_t *node) {
 static esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id) {
    esp_err_t err = ESP_OK;
    void *priv_data = endpoint::get_priv_data(endpoint_id);
-   led_indicator_handle_t handle = (led_indicator_handle_t)priv_data;
+   light_handle_t handle = (light_handle_t)priv_data;
    node_t *node = node::get();
    endpoint_t *endpoint = endpoint::get(node, endpoint_id);
    cluster_t *cluster = NULL;
@@ -151,8 +151,7 @@ void light_endpoint_on_start(endpoint_handle_t handle) {
 }
 
 static esp_err_t handle_on_off_attribute_update(
-    led_indicator_handle_t &handle,
-    uint16_t endpoint_id, uint32_t cluster_id,
+    light_handle_t handle,
     uint32_t attribute_id,
     esp_matter_attr_val_t *val
 ) {
@@ -164,8 +163,7 @@ static esp_err_t handle_on_off_attribute_update(
 }
 
 static esp_err_t handle_level_control_attribute_update(
-    led_indicator_handle_t &handle,
-    uint16_t endpoint_id, uint32_t cluster_id,
+    light_handle_t handle,
     uint32_t attribute_id,
     esp_matter_attr_val_t *val
 ) {
@@ -177,8 +175,7 @@ static esp_err_t handle_level_control_attribute_update(
 }
 
 static esp_err_t handle_color_control_attribute_update(
-    led_indicator_handle_t &handle,
-    uint16_t endpoint_id, uint32_t cluster_id,
+    light_handle_t handle,
     uint32_t attribute_id,
     esp_matter_attr_val_t *val
 ) {
@@ -196,18 +193,19 @@ static esp_err_t handle_color_control_attribute_update(
 
 esp_err_t handle_light_attribute_update(
     app_driver_handle_t driver_handle,
-    uint16_t endpoint_id, uint32_t cluster_id,
+    uint16_t endpoint_id,
+    uint32_t cluster_id,
     uint32_t attribute_id,
     esp_matter_attr_val_t *val
 ) {
-    led_indicator_handle_t handle = (led_indicator_handle_t)driver_handle;
+    light_handle_t handle = (light_handle_t)driver_handle;
     switch (cluster_id) {
         case OnOff::Id:
-            return handle_on_off_attribute_update(handle, endpoint_id, cluster_id, attribute_id, val);
+            return handle_on_off_attribute_update(handle, attribute_id, val);
         case LevelControl::Id:
-            return handle_level_control_attribute_update(handle, endpoint_id, cluster_id, attribute_id, val);
+            return handle_level_control_attribute_update(handle, attribute_id, val);
         case ColorControl::Id:
-            return handle_color_control_attribute_update(handle, endpoint_id, cluster_id, attribute_id, val);
+            return handle_color_control_attribute_update(handle, attribute_id, val);
         default:
             return ESP_OK;
     }
