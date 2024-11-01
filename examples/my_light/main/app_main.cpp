@@ -21,11 +21,10 @@ extern "C" void app_main()
     nvs_flash_init();
 
     /* Initialize driver */
-    app_driver_handle_t light_handle = app_driver_light_init();
     app_driver_handle_t button_handle = app_driver_button_init();
     app_reset_button_register(button_handle);
 
-    create_matter_node(light_handle);
+    create_matter_node();
 
     /* Set OpenThread platform config */
     esp_openthread_platform_config_t config = {

@@ -120,11 +120,11 @@ static esp_err_t app_attribute_update_cb(attribute::callback_type_t type, uint16
     return err;
 }
 
-static void register_endpoints(node_t *node, app_driver_handle_t &light_handle) {
-    register_light_endpoint(node, light_handle);
+static void register_endpoints(node_t *node) {
+    register_light_endpoint(node);
 }
 
-void create_matter_node(app_driver_handle_t &light_handle) {
+void create_matter_node() {
     /* Create a Matter node and add the mandatory Root Node device type on endpoint 0 */
     node::config_t node_config;
 
@@ -132,7 +132,7 @@ void create_matter_node(app_driver_handle_t &light_handle) {
     node_t *node = node::create(&node_config, app_attribute_update_cb, app_identification_cb);
     ABORT_APP_ON_FAILURE(node != nullptr, ESP_LOGE(TAG, "Failed to create Matter node"));
 
-    register_endpoints(node, light_handle);
+    register_endpoints(node);
 }
 
 void start_matter_node() {

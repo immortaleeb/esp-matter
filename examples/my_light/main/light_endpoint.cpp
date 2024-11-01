@@ -42,7 +42,9 @@ static void configure_color_control_cluster(endpoint_t *endpoint) {
     attribute::set_deferred_persistence(color_temp_attribute);
 }
 
-void register_light_endpoint(node_t *node, app_driver_handle_t &light_handle) {
+void register_light_endpoint(node_t *node) {
+    app_driver_handle_t light_handle = app_driver_light_init();
+
     extended_color_light::config_t light_config;
     light_config.on_off.on_off = DEFAULT_POWER;
     light_config.on_off.lighting.start_up_on_off = nullptr;
