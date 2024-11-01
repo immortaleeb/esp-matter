@@ -13,6 +13,7 @@
 
 #include <app_priv.h>
 #include <matter_node.h>
+#include <light.h>
 
 extern "C" void app_main()
 {

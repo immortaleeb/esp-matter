@@ -17,6 +17,18 @@
 
 #include <app_priv.h>
 
+/** Standard max values (used for remapping attributes) */
+#define STANDARD_BRIGHTNESS 255
+#define STANDARD_HUE 360
+#define STANDARD_SATURATION 255
+#define STANDARD_TEMPERATURE_FACTOR 1000000
+
+/** Matter max values (used for remapping attributes) */
+#define MATTER_BRIGHTNESS 254
+#define MATTER_HUE 254
+#define MATTER_SATURATION 254
+#define MATTER_TEMPERATURE_FACTOR 1000000
+
 using namespace chip::app::Clusters;
 using namespace esp_matter;
 
@@ -190,16 +202,6 @@ esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id)
     err |= app_driver_light_set_power(handle, &val);
 
     return err;
-}
-
-app_driver_handle_t app_driver_light_init()
-{
-    /* Initialize led */
-    led_indicator_handle_t leds[CONFIG_BSP_LEDS_NUM];
-    ESP_ERROR_CHECK(bsp_led_indicator_create(leds, NULL, CONFIG_BSP_LEDS_NUM));
-    led_indicator_set_hsv(leds[0], SET_HSV(DEFAULT_HUE, DEFAULT_SATURATION, DEFAULT_BRIGHTNESS));
-    
-    return (app_driver_handle_t)leds[0];
 }
 
 app_driver_handle_t app_driver_button_init()

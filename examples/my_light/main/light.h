@@ -1,10 +1,19 @@
 #pragma once
 
+#include <app_driver_handle.h>
+
 #include <esp_err.h>
 #include "bsp/esp-bsp.h"
 
 #define LIGHT_ON true
 #define LIGHT_OFF false
+
+#define DEFAULT_POWER LIGHT_OFF
+#define DEFAULT_BRIGHTNESS 64
+#define DEFAULT_HUE 128
+#define DEFAULT_SATURATION 254
+
+app_driver_handle_t app_driver_light_init();
 
 esp_err_t light_set_power(led_indicator_handle_t handle, bool on);
 

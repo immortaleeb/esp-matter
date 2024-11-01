@@ -1,5 +1,6 @@
 #include <matter_node.h>
 #include <app_priv.h>
+#include <light.h>
 
 #include <esp_err.h>
 #include <esp_log.h>

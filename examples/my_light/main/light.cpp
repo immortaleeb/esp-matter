@@ -1,5 +1,15 @@
 #include <light.h>
 
+app_driver_handle_t app_driver_light_init()
+{
+    /* Initialize led */
+    led_indicator_handle_t leds[CONFIG_BSP_LEDS_NUM];
+    ESP_ERROR_CHECK(bsp_led_indicator_create(leds, NULL, CONFIG_BSP_LEDS_NUM));
+    led_indicator_set_hsv(leds[0], SET_HSV(DEFAULT_HUE, DEFAULT_SATURATION, DEFAULT_BRIGHTNESS));
+
+    return (app_driver_handle_t)leds[0];
+}
+
 esp_err_t light_set_power(led_indicator_handle_t handle, bool on)
 {
     return led_indicator_start(handle, on ? BSP_LED_ON : BSP_LED_OFF);
