@@ -24,9 +24,8 @@ extern "C" void app_main()
     nvs_flash_init();
 
     endpoint_descriptor_t light_endpoint = light_endpoint_create_descriptor();
-    endpoint_descriptor_t endpoints[NUM_ENDPOINTS] = {
-        light_endpoint
-    };
+    endpoint_descriptor_t *endpoints = (endpoint_descriptor_t*) calloc(NUM_ENDPOINTS, sizeof(endpoint_descriptor_t));
+    endpoints[0] = light_endpoint;
 
     /* Initialize driver */
     app_driver_handle_t button_handle = app_driver_button_init((light_endpoint_t) light_endpoint.handle);
