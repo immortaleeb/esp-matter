@@ -130,7 +130,9 @@ static void configure_level_control_cluster(endpoint_t *endpoint) {
     cluster_t *level_control_cluster = cluster::get(endpoint, LevelControl::Id);
     attribute_t *current_level_attribute = attribute::get(level_control_cluster, LevelControl::Attributes::CurrentLevel::Id);
     attribute::set_deferred_persistence(current_level_attribute);
+}
 
+static void configure_color_control_cluster(endpoint_t *endpoint) {
     cluster_t *color_control_cluster = cluster::get(endpoint, ColorControl::Id);
     attribute_t *current_x_attribute = attribute::get(color_control_cluster, ColorControl::Attributes::CurrentX::Id);
     attribute::set_deferred_persistence(current_x_attribute);
@@ -140,7 +142,7 @@ static void configure_level_control_cluster(endpoint_t *endpoint) {
     attribute::set_deferred_persistence(color_temp_attribute);
 }
 
-static void create_light_endpoint(node_t *node, app_driver_handle_t &light_handle) {
+static void register_light_endpoint(node_t *node, app_driver_handle_t &light_handle) {
     extended_color_light::config_t light_config;
     light_config.on_off.on_off = DEFAULT_POWER;
     light_config.on_off.lighting.start_up_on_off = nullptr;
@@ -159,6 +161,11 @@ static void create_light_endpoint(node_t *node, app_driver_handle_t &light_handl
     ESP_LOGI(TAG, "Light created with endpoint_id %d", light_endpoint_id);
 
     configure_level_control_cluster(endpoint);
+    configure_color_control_cluster(endpoint);
+}
+
+static void register_endpoints(node_t *node, app_driver_handle_t &light_handle) {
+    register_light_endpoint(node, light_handle);
 }
 
 void create_matter_node(app_driver_handle_t &light_handle) {
@@ -169,7 +176,7 @@ void create_matter_node(app_driver_handle_t &light_handle) {
     node_t *node = node::create(&node_config, app_attribute_update_cb, app_identification_cb);
     ABORT_APP_ON_FAILURE(node != nullptr, ESP_LOGE(TAG, "Failed to create Matter node"));
 
-    create_light_endpoint(node, light_handle);
+    register_endpoints(node, light_handle);
 }
 
 void start_matter_node() {
