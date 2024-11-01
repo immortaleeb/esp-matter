@@ -8,8 +8,6 @@
 
 #include <app_priv.h>
 
-#include <light_endpoint.h>
-
 #include <esp_log.h>
 #include <esp_matter.h>
 #include "bsp/esp-bsp.h" // button_handle_t
@@ -36,16 +34,6 @@ static void app_driver_button_toggle_cb(void *arg, void *data)
     attribute::get_val(attribute, &val);
     val.val.b = !val.val.b;
     attribute::update(endpoint_id, cluster_id, attribute_id, &val);
-}
-
-esp_err_t app_driver_attribute_update(app_driver_handle_t driver_handle, uint16_t endpoint_id, uint32_t cluster_id,
-                                      uint32_t attribute_id, esp_matter_attr_val_t *val)
-{
-    if (endpoint_id == light_endpoint_id) {
-        return handle_light_attribute_update(driver_handle, endpoint_id, cluster_id, attribute_id, val);
-    }
-
-    return ESP_OK;
 }
 
 app_driver_handle_t app_driver_button_init()

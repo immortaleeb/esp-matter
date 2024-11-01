@@ -19,6 +19,8 @@ static const char *TAG = "matter_node";
 
 constexpr auto k_timeout_seconds = 300;
 
+extern uint16_t light_endpoint_id;
+
 static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 {
     switch (event->Type) {
@@ -100,6 +102,16 @@ static esp_err_t app_identification_cb(identification::callback_type_t type, uin
                                        uint8_t effect_variant, void *priv_data)
 {
     ESP_LOGI(TAG, "Identification callback: type: %u, effect: %u, variant: %u", type, effect_id, effect_variant);
+    return ESP_OK;
+}
+
+static esp_err_t app_driver_attribute_update(app_driver_handle_t driver_handle, uint16_t endpoint_id, uint32_t cluster_id,
+                                      uint32_t attribute_id, esp_matter_attr_val_t *val)
+{
+    if (endpoint_id == light_endpoint_id) {
+        return handle_light_attribute_update(driver_handle, endpoint_id, cluster_id, attribute_id, val);
+    }
+
     return ESP_OK;
 }
 
