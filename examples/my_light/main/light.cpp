@@ -1,5 +1,9 @@
 #include <light.h>
 
+#include <esp_log.h>
+
+static const char *TAG = "light";
+
 light_handle_t app_driver_light_init()
 {
     /* Initialize led */
@@ -17,13 +21,13 @@ esp_err_t light_set_power(light_handle_t handle, bool on)
 
 esp_err_t light_set_brightness(light_handle_t handle, uint8_t brightness)
 {
-//    int value = REMAP_TO_RANGE(brightness, MATTER_BRIGHTNESS, STANDARD_BRIGHTNESS);
+    ESP_LOGI(TAG, "setting brightness to %u", brightness);
     return led_indicator_set_brightness((led_indicator_handle_t) handle, brightness);
 }
 
 esp_err_t light_set_hue(light_handle_t handle, uint8_t hue)
 {
-//    int value = REMAP_TO_RANGE(val->val.u8, MATTER_HUE, STANDARD_HUE);
+    ESP_LOGI(TAG, "setting hue to %u", hue);
     led_indicator_ihsv_t hsv;
     hsv.value = led_indicator_get_hsv((led_indicator_handle_t) handle);
     hsv.h = hue;
@@ -32,7 +36,7 @@ esp_err_t light_set_hue(light_handle_t handle, uint8_t hue)
 
 esp_err_t light_set_saturation(light_handle_t handle, uint8_t saturation)
 {
-//    int value = REMAP_TO_RANGE(val->val.u8, MATTER_SATURATION, STANDARD_SATURATION);
+    ESP_LOGI(TAG, "setting saturation to %u", saturation);
     led_indicator_ihsv_t hsv;
     hsv.value = led_indicator_get_hsv((led_indicator_handle_t) handle);
     hsv.s = saturation;
@@ -41,6 +45,12 @@ esp_err_t light_set_saturation(light_handle_t handle, uint8_t saturation)
 
 esp_err_t light_set_temperature(light_handle_t handle, uint32_t temperature)
 {
-//    uint32_t value = REMAP_TO_RANGE_INVERSE(val->val.u16, STANDARD_TEMPERATURE_FACTOR);
+    ESP_LOGI(TAG, "setting temperature to %lu", temperature);
     return led_indicator_set_color_temperature((led_indicator_handle_t) handle, temperature);
+}
+
+esp_err_t light_set_rgb(light_handle_t handle, uint8_t r, uint8_t g, uint8_t b) {
+    ESP_LOGI(TAG, "setting rgb to (%u, %u, %u)", r, g, b);
+    uint32_t irgb = (0 << 24) + (r << 16) + (g << 8) + (b << 0);
+    return led_indicator_set_rgb((led_indicator_handle_t) handle, irgb);
 }

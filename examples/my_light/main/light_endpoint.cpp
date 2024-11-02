@@ -5,6 +5,7 @@
 #include <esp_log.h>
 #include <esp_matter.h>
 #include <common_macros.h>
+#include <color_conversions.h>
 
 /** Standard max values (used for remapping attributes) */
 #define STANDARD_BRIGHTNESS 255
@@ -17,6 +18,8 @@
 #define MATTER_HUE 254
 #define MATTER_SATURATION 254
 #define MATTER_TEMPERATURE_FACTOR 1000000
+
+#define MATTER_COLOR_MAX 65536.0
 
 using namespace esp_matter::endpoint;
 using namespace chip::app::Clusters;
@@ -98,6 +101,13 @@ uint16_t register_light_endpoint(endpoint_handle_t handle, node_t *node) {
      return light_set_temperature(handle, value);
  }
 
+static esp_err_t light_set_xy(light_handle_t handle, uint16_t x, uint16_t y) {
+    ESP_LOGI("light_set_xy", "x: %u, y: %u", x, y);
+    uint8_t r; uint8_t g; uint8_t b;
+    xyToRGB(x / MATTER_COLOR_MAX, y / MATTER_COLOR_MAX, &r, &g, &b);
+    return light_set_rgb(handle, r, g, b);
+}
+
 static esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id) {
    esp_err_t err = ESP_OK;
    void *priv_data = endpoint::get_priv_data(endpoint_id);
@@ -132,8 +142,18 @@ static esp_err_t app_driver_light_set_defaults(uint16_t endpoint_id) {
        attribute = attribute::get(cluster, ColorControl::Attributes::ColorTemperatureMireds::Id);
        attribute::get_val(attribute, &val);
        err |= app_driver_light_set_temperature(handle, &val);
+   } else if (val.val.u8 == (uint8_t)ColorControl::ColorMode::kCurrentXAndCurrentY) {
+       esp_matter_attr_val_t currentX = esp_matter_invalid(NULL);
+       attribute = attribute::get(cluster, ColorControl::Attributes::CurrentX::Id);
+       attribute::get_val(attribute, &currentX);
+
+       esp_matter_attr_val_t currentY = esp_matter_invalid(NULL);
+       attribute = attribute::get(cluster, ColorControl::Attributes::CurrentY::Id);
+       attribute::get_val(attribute, &currentY);
+
+       err |= light_set_xy(handle, currentX.val.u16, currentY.val.u16);
    } else {
-       ESP_LOGE(TAG, "Color mode not supported");
+       ESP_LOGE(TAG, "Color mode not supported: %u", val.val.u8);
    }
 
    /* Setting power */
@@ -174,19 +194,58 @@ static esp_err_t handle_level_control_attribute_update(
     return ESP_OK;
 }
 
-static esp_err_t handle_color_control_attribute_update(
-    light_handle_t handle,
+static void get_current_attribute_value(
+    uint16_t endpoint_id,
+    uint32_t cluster_id,
     uint32_t attribute_id,
     esp_matter_attr_val_t *val
 ) {
+    node_t *node = node::get();
+    endpoint_t *endpoint = endpoint::get(node, endpoint_id);
+    cluster_t *cluster = cluster::get(endpoint, cluster_id);
+    attribute_t *attribute = attribute::get(cluster, attribute_id);
+    attribute::get_val(attribute, val);
+}
+
+static esp_err_t light_set_x(light_handle_t handle, uint16_t endpoint_id, esp_matter_attr_val_t *currentX) {
+    esp_matter_attr_val_t currentY = esp_matter_invalid(NULL);
+    get_current_attribute_value(endpoint_id, ColorControl::Id, ColorControl::Attributes::CurrentY::Id, &currentY);
+
+    return light_set_xy(handle, currentX->val.u16, currentY.val.u16);
+}
+
+static esp_err_t light_set_y(light_handle_t handle, uint16_t endpoint_id, esp_matter_attr_val_t *currentY) {
+    esp_matter_attr_val_t currentX = esp_matter_invalid(NULL);
+    get_current_attribute_value(endpoint_id, ColorControl::Id, ColorControl::Attributes::CurrentX::Id, &currentX);
+
+    return light_set_xy(handle, currentX.val.u16, currentY->val.u16);
+}
+
+static esp_err_t handle_color_control_attribute_update(
+    light_handle_t handle,
+    uint16_t endpoint_id,
+    uint32_t attribute_id,
+    esp_matter_attr_val_t *val
+) {
+    ESP_LOGI(TAG, "handling color control attribute update for attribute %lu with value of type %d", attribute_id, val->type);
     switch (attribute_id) {
+        case ColorControl::Attributes::CurrentX::Id:
+            ESP_LOGI(TAG, "got X change");
+            return light_set_x(handle, endpoint_id, val);
+        case ColorControl::Attributes::CurrentY::Id:
+            ESP_LOGI(TAG, "got Y change");
+            return light_set_y(handle, endpoint_id, val);
         case ColorControl::Attributes::CurrentHue::Id:
+            ESP_LOGI(TAG, "got hue change");
             return app_driver_light_set_hue(handle, val);
         case ColorControl::Attributes::CurrentSaturation::Id:
+            ESP_LOGI(TAG, "got saturation change");
             return app_driver_light_set_saturation(handle, val);
         case ColorControl::Attributes::ColorTemperatureMireds::Id:
+            ESP_LOGI(TAG, "got color temperature change");
             return app_driver_light_set_temperature(handle, val);
         default:
+            ESP_LOGI(TAG, "No matching attribute found");
             return ESP_OK;
     }
 }
@@ -205,7 +264,7 @@ esp_err_t handle_light_attribute_update(
         case LevelControl::Id:
             return handle_level_control_attribute_update(handle, attribute_id, val);
         case ColorControl::Id:
-            return handle_color_control_attribute_update(handle, attribute_id, val);
+            return handle_color_control_attribute_update(handle, endpoint_id, attribute_id, val);
         default:
             return ESP_OK;
     }

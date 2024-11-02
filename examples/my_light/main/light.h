@@ -26,3 +26,5 @@ esp_err_t light_set_hue(light_handle_t handle, uint8_t hue);
 esp_err_t light_set_saturation(light_handle_t handle, uint8_t saturation);
 
 esp_err_t light_set_temperature(light_handle_t handle, uint32_t temperature);
+
+esp_err_t light_set_rgb(light_handle_t handle, uint8_t r, uint8_t g, uint8_t b);
